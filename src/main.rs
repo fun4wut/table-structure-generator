@@ -21,7 +21,8 @@ fn main() {
                               --password=<PASSWORD> 'Sets the password'")
 //        多参数只能使用该方法进行解析
         .arg(Arg::with_name("TABLES")
-            .multiple(true))
+            .multiple(true)
+            .help("the tables you want to generate the structure"))
         .get_matches();
 
     let q = Query::new(Config::new(&matches)).unwrap_or_else(|err| {

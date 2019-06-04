@@ -23,7 +23,7 @@ ARGS:
 
 This will print the html to `stdin` .
 
->  Tips:**You can use `>` to redirect the output to a certain file **
+>  Tips:You can use `>` to redirect the output to a certain file
 
 ## Example Preview
 

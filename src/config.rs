@@ -25,7 +25,7 @@ impl<'a> Config<'a> {
         Self {
             db_name: matches.value_of("database").unwrap_or("postgres"),
             port: matches.value_of("port").unwrap_or("5432").parse::<i32>().unwrap(),
-            host: matches.value_of("host").unwrap_or("0.0.0.0"),
+            host: matches.value_of("host").unwrap_or("127.0.0.1"),
             username: matches.value_of("username").unwrap_or("postgres"),
             password: matches.value_of("password").unwrap(),
             tables: match matches.values_of("TABLES") {
