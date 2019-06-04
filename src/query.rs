@@ -1,9 +1,9 @@
 extern crate postgres;
 
 use postgres::Connection;
-use super::config::Config;
+use super::config::{Config, TableConfig};
 use self::postgres::TlsMode;
-use self::postgres::rows::{Row, Rows};
+use self::postgres::rows::Rows;
 use std::error::Error;
 
 pub struct Query<'a> {
@@ -19,6 +19,22 @@ impl<'a> Query<'a> {
         };
         Ok(q)
     }
+
+    //   根据tableconfig字段给出vec表
+    fn list_all_tables(&self) -> Vec<String> {
+        self.conn.query("select
+        table_name
+        from information_schema.columns where table_schema = 'public'
+        group by table_name;", &[]).unwrap_or_else(|err| {
+            eprintln!("获取表名数据失败:{}", err);
+            std::process::exit(1);
+        }).iter().map(|row| {
+            let table_name: String = row.get(0);
+            table_name
+        }).collect::<Vec<_>>()
+    }
+
+
     fn make_single_query(&self, table_name: &str) -> Result<Rows, Box<dyn Error>> {
         let res = self.conn.query("select
         column_name ,
@@ -43,7 +59,12 @@ impl<'a> Query<'a> {
                    , tbody))
     }
     pub fn make_query(&self) -> String {
-        let tables = self.config.tables.iter()
+        let tmp = self.list_all_tables();
+        let tables = match &self.config.tables {
+            TableConfig::All => &tmp,
+            TableConfig::List(v) => v
+        };
+        let html_text = tables.iter()
             .fold(String::new(), |acc: String, table| {
                 acc + format!("<h3>{}</h3>", table).as_str()
                     + self.to_html(self.make_single_query(table)
@@ -55,6 +76,15 @@ impl<'a> Query<'a> {
                     std::process::exit(1);
                 }).as_str()
             });
-        tables
+        format!("<!doctype html>
+            <html lang=\"en\">
+            <head>
+                <meta charset=\"UTF-8\">
+                <title>Document</title>
+            </head>
+            <body>
+              {}
+            </body>
+            </html>", html_text)
     }
 }

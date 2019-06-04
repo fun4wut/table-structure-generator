@@ -1,6 +1,6 @@
 extern crate clap;
 
-use clap::{Arg, App, SubCommand};
+use clap::{Arg, App};
 
 mod config;
 mod query;
@@ -21,21 +21,11 @@ fn main() {
                               --password=<PASSWORD> 'Sets the password'")
 //        多参数只能使用该方法进行解析
         .arg(Arg::with_name("TABLES")
-            .multiple(true)
-            .required(true)
-            .min_values(1))
+            .multiple(true))
         .get_matches();
-    let cfg = Config {
-        db_name: matches.value_of("database").unwrap_or("postgres"),
-        port: matches.value_of("port").unwrap_or("5432").parse::<i32>().unwrap(),
-        host: matches.value_of("host").unwrap_or("0.0.0.0"),
-        username: matches.value_of("username").unwrap_or("postgres"),
-        password: matches.value_of("password").unwrap(),
-        tables: matches.values_of("TABLES").unwrap().collect::<Vec<&str>>(),
-    };
-//    println!("{:#?}",cfg);
-    let q = Query::new(cfg).unwrap_or_else(|err| {
-        eprintln!("数据库连接失败!");
+
+    let q = Query::new(Config::new(&matches)).unwrap_or_else(|err| {
+        eprintln!("数据库连接失败!:{}", err);
         process::exit(1);
     });
     println!("{}", q.make_query());
