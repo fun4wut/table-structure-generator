@@ -1,8 +1,12 @@
 # Table-Structure-Generator
 
-## How to use
+## Usage
 
 ```
+table-structure-generator 1.0
+Fun4wut
+Generate PGSQL table structure
+
 USAGE:
     table-structure-generator [OPTIONS] --password <PASSWORD> [TABLES]...
 
@@ -11,14 +15,15 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -d, --database <DATABASE>    Sets database
-        --host <HOST>            Sets the host
-        --password <PASSWORD>    Sets the password
-    -p, --port <PORT>            Sets the port
-    -U, --username <USERNAME>    Sets PG username
+    -d, --database <DATABASE>    Sets database [default: postgres]
+    -H, --host <HOST>            Sets the host [default: 127.0.0.1]
+    -P, --password <PASSWORD>    Sets the password
+    -p, --port <PORT>            Sets the port [default: 5432]
+    -U, --username <USERNAME>    Sets PG username [default: postgres]
 
 ARGS:
-    <TABLES>...
+    <TABLES>...    the tables you want to generate the structure, default is all tables
+
 ```
 
 This will print the html to `stdin` .

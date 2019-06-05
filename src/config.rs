@@ -23,10 +23,10 @@ impl<'a> Config<'a> {
     }
     pub fn new(matches: &'a ArgMatches) -> Self {
         Self {
-            db_name: matches.value_of("database").unwrap_or("postgres"),
-            port: matches.value_of("port").unwrap_or("5432").parse::<i32>().unwrap(),
-            host: matches.value_of("host").unwrap_or("127.0.0.1"),
-            username: matches.value_of("username").unwrap_or("postgres"),
+            db_name: matches.value_of("database").unwrap(),
+            port: matches.value_of("port").unwrap().parse::<i32>().unwrap(),
+            host: matches.value_of("host").unwrap(),
+            username: matches.value_of("username").unwrap(),
             password: matches.value_of("password").unwrap(),
             tables: match matches.values_of("TABLES") {
                 None => TableConfig::All,
