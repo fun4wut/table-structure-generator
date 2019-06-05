@@ -6,10 +6,25 @@ use self::postgres::TlsMode;
 use self::postgres::rows::Rows;
 use std::error::Error;
 
+#[derive(Debug)]
+pub struct TableRow {
+    pub type_name: String,
+    pub data_type: String,
+    pub nullable: String,
+    pub default: String,
+}
+
+#[derive(Debug)]
+pub struct SingleTable {
+    pub title: String,
+    pub rows: Vec<TableRow>,
+}
+
 pub struct Query<'a> {
     conn: Connection,
-    config: Config<'a>,
+    config: Config<'a>
 }
+
 
 impl<'a> Query<'a> {
     pub fn new(config: Config<'a>) -> Result<Self, Box<dyn Error>> {
@@ -24,7 +39,7 @@ impl<'a> Query<'a> {
     fn list_all_tables(&self) -> Vec<String> {
         self.conn.query("select
         table_name
-        from information_schema.columns where table_schema = 'public'
+        from information_schema.Columns where table_schema = 'public'
         group by table_name;", &[]).unwrap_or_else(|err| {
             eprintln!("获取表名数据失败:{}", err);
             std::process::exit(1);
@@ -41,50 +56,40 @@ impl<'a> Query<'a> {
         data_type ,
         is_nullable ,
         column_default
-        from information_schema.columns where table_schema = 'public' and table_name = $1;",
+        from information_schema.Columns where table_schema = 'public' and table_name = $1;",
                                   &[&table_name])?;
         Ok(res)
     }
-    fn to_html(&self, rows: Rows) -> Result<String, Box<dyn Error>> {
-        let tbody = rows.iter().try_fold(String::new(), |acc: String, item|
-                                                         -> Result<String, Box<dyn Error>>{
+    fn to_table_rows(&self, rows: Rows) -> Vec<TableRow> {
+        rows.iter().map(|item| {
             let type_name: String = item.get(0);
             let data_type: String = item.get(1);
             let nullable: String = item.get(2);
             let default: Option<String> = item.get(3);
-            Ok(acc + format!("<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
-                             type_name, data_type, nullable, default.unwrap_or(String::from("Null"))).as_str())
-        })?;
-        Ok(format!("<table border=\"1\"><thead><tr><th>字段名称</th><th>数据类型</th><th>是否可空</th><th>默认值</th></tr></thead><tbody>{}</tbody></table>"
-                   , tbody))
+            TableRow {
+                type_name,
+                data_type,
+                nullable,
+                default: default.unwrap_or(String::from("Null")),
+            }
+        }).collect::<Vec<_>>()
     }
-    pub fn make_query(&self) -> String {
+    pub fn make_query(&self) -> Vec<SingleTable> {
         let tmp = self.list_all_tables();
         let tables = match &self.config.tables {
             TableConfig::All => &tmp,
             TableConfig::List(v) => v
         };
-        let html_text = tables.iter()
-            .fold(String::new(), |acc: String, table| {
-                acc + format!("<h3>{}</h3>", table).as_str()
-                    + self.to_html(self.make_single_query(table)
-                    .unwrap_or_else(|err| {
-                        eprintln!("数据库读取错误:{}", err);
-                        std::process::exit(1);
-                    })).unwrap_or_else(|err| {
-                    eprintln!("渲染错误:{}", err);
-                    std::process::exit(1);
-                }).as_str()
-            });
-        format!("<!doctype html>
-            <html lang=\"en\">
-            <head>
-                <meta charset=\"UTF-8\">
-                <title>Document</title>
-            </head>
-            <body>
-              {}
-            </body>
-            </html>", html_text)
+        tables.iter()
+            .map(|table| {
+                SingleTable {
+                    title: table.clone(),
+                    rows: self.to_table_rows(self.make_single_query(table)
+                        .unwrap_or_else(|err| {
+                            eprintln!("数据库读取错误:{}", err);
+                            std::process::exit(1);
+                        })),
+                }
+            }).collect::<Vec<_>>()
     }
 }

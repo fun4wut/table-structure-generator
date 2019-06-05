@@ -4,11 +4,11 @@ use clap::{Arg, App};
 
 mod config;
 mod query;
-
+mod template;
 use query::Query;
 use crate::config::Config;
 use std::process;
-
+use template::MyTemplate;
 fn main() {
     let matches = App::new("table-structure-generator")
         .version("0.1")
@@ -29,5 +29,5 @@ fn main() {
         eprintln!("数据库连接失败!:{}", err);
         process::exit(1);
     });
-    println!("{}", q.make_query());
+    MyTemplate::new(q.make_query()).show();
 }

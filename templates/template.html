@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Table-Structure-Generator</title>
+  <style>
+    table {
+      /*table-layout: auto;*/
+      border-collapse: collapse;
+      width: 100%;
+    }
+
+    table td {
+      border: 1px solid #ccc;
+      width: 40px;
+    }
+
+    table .absorbing-column {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+{% for table in tables %}
+<h3>{{table.title}}</h3>
+<table border="1">
+  <thead>
+  <tr>
+    <th>字段名称</th>
+    <th>数据类型</th>
+    <th>是否可空</th>
+    <th>默认值</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for row in table.rows %}
+  <tr>
+    <td>{{row.type_name}}</td>
+    <td>{{row.data_type}}</td>
+    <td>{{row.nullable}}</td>
+    <td>{{row.default}}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endfor %}
+</body>
+</html>
